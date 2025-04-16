@@ -21,11 +21,17 @@ or other data.
 
 Download data to YOUR_PATH.
 
-2、Training
+2、Processing
+
+loader.py file is responsible for processing various types of datasets to meet the requirements for model input.
+
+food_adamw.yml is a configuration file used for training deep learning models. It specifies various hyperparameters and data augmentation settings. Through careful parameter configuration, it aims to achieve better training efficiency and model performance.
+
+3、Training
 
 Usage: me Config_file Model_name Dataset_name Img_size Remove_old_if_exist_0_or_1 Resume_or_not_if_exist Exp_name Tag Gpus Nb_gpus Workers Port
 
-3、Validate
+4、Validate
 
 Usage: me model_name checkpoint_file dataset_name img_size gpus num_gpus
 
