@@ -6,11 +6,17 @@ Food image recognition is a crucial step for food detection, nutritional analysi
 We provide scripts for training models using a multi-node GPU server (e.g., 8 NVIDIA GPUs).
 
 1、Data preparation
+
 Data:
+
 a. [ETHZ Food101](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/)
+
 b. [food11](https://www.kaggle.com/datasets/vermaavi/food11)
+
 c. [CAFD](https://github.com/IS2AI/Central-Asian-Food-Dataset)
+
 d. [food new](https://www.kaggle.com/datasets/pranavkathar/foodnew)
+
 Download data to YOUR_PATH.
 
 2、Training
