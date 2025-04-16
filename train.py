@@ -937,8 +937,7 @@ group.add_argument(
     type=int,
     help="the number of groups of dividing the trunk of a network",
 )
-# data aug
-## from Deit III https://github.com/facebookresearch/deit/blob/main/main.py
+
 group.add_argument(
     "--three-augment-ssl",
     action="store_true",
@@ -974,10 +973,7 @@ def _parse_args():
 def main():
     # utils.setup_default_logging()
     # args, args_text = _parse_args()
-    # << ------------- ivmcl
-    # 准备训练所需的输出文件夹和日志记录设置，同时生成压缩文件以备份相关数据
 
-    # 为实验创建一个实验名称 和 输出目录
     args, args_text = _parse_args()
     if args.experiment:
         exp_name = args.experiment
@@ -1011,7 +1007,7 @@ def main():
 
     # env_info_dict = mmcv.utils.collect_env()
     # env_info = "\n".join([(f"{k}: {v}") for k, v in env_info_dict.items()])
-    dash_line = "-" * 60 + "\n"   # 在文本输出中创建分隔线
+    dash_line = "-" * 60 + "\n"
 
     if not has_log_path_before:
         # _logger.info("Environment info:\n" + dash_line + env_info + "\n" + dash_line)
@@ -1051,7 +1047,7 @@ def main():
             amp_dtype = torch.bfloat16
 
     # utils.random_seed(args.seed, args.rank)
-    # << ------------- ivmcl  设置随机种子以确保在训练过程中的可重复性
+    # << ------------- ivmcl
     if args.use_deterministic:
         torch.manual_seed(0)
         if torch.cuda.is_available():
@@ -1122,7 +1118,7 @@ def main():
         assert num_aug_splits > 1 or args.resplit
         model = convert_splitbn_model(model, max(num_aug_splits, 2))
 
-    # << ------------- ivmcl 生成和打印模型的摘要信息
+    # << ------------- ivmcl
     if utils.is_primary(args):
         model_stats = summary(
             model,
@@ -1150,7 +1146,7 @@ def main():
         # ivmcl ------------- >>
 
     # setup synchronized BatchNorm for distributed training
-    # 确保每个 GPU 上的 Batch Normalization 参数是同步的
+
     if args.distributed and args.sync_bn:
         args.dist_bn = ""  # disable dist_bn when sync BN active
         assert not args.split_bn
@@ -1317,7 +1313,6 @@ def main():
             load_checkpoint(model_ema.module, args.resume, use_ema=True)
 
     # setup distributed training
-    # 设置分布式训练
     if args.distributed:
         if has_apex and use_amp == "apex":
             # Apex DDP preferred unless native amp is activated
@@ -1355,11 +1350,9 @@ def main():
         class_map=args.class_map,
         download=args.dataset_download,
         batch_size=int(1.5 * args.batch_size),
-        # eval时使用更大的批量大小，以便提高效率并获得更准确的性能指标
     )
 
     # setup mixup / cutmix
-    # 设置数据增强技术
     collate_fn = None
     mixup_fn = None
     mixup_active = args.mixup > 0 or args.cutmix > 0.0 or args.cutmix_minmax is not None
@@ -1382,13 +1375,12 @@ def main():
         else:
             mixup_fn = Mixup(**mixup_args)
 
-    # 用 AugMix 数据增强：应用多个随机变换
     if num_aug_splits > 1:
         dataset_train = AugMixDataset(dataset_train, num_splits=num_aug_splits)
 
     # create data loaders w/ augmentation pipeiine
-    train_interpolation = args.train_interpolation  # 是否用了数据增强
-    if args.no_aug or not train_interpolation:      # 是否设置训练插值
+    train_interpolation = args.train_interpolation
+    if args.no_aug or not train_interpolation:
         train_interpolation = data_config["interpolation"]
     loader_train = create_loader_v2(
         dataset_train,
@@ -1424,7 +1416,7 @@ def main():
         use_three_augment_ssl=args.three_augment_ssl,
     )
 
-    eval_workers = args.workers  # 设置工作进程数量
+    eval_workers = args.workers
     if args.distributed and ("tfds" in args.dataset or "wds" in args.dataset):
         # FIXME reduces validation padding issues when using TFDS, WDS w/ workers and distributed training
         eval_workers = min(2, args.workers)
@@ -1715,14 +1707,14 @@ def train_one_epoch(
     model_ema=None,
     mixup_fn=None,
 ):
-    # 检查是否达到了禁用 MixUp 的条件
+
     if args.mixup_off_epoch and epoch >= args.mixup_off_epoch:
         if args.prefetcher and loader.mixup_enabled:
             loader.mixup_enabled = False
         elif mixup_fn is not None:
             mixup_fn.mixup_enabled = False
 
-    # 判断当前优化器是否是支持二阶优化的优化器
+
     second_order = hasattr(optimizer, "is_second_order") and optimizer.is_second_order
     batch_time_m = utils.AverageMeter()
     data_time_m = utils.AverageMeter()
@@ -1755,7 +1747,7 @@ def train_one_epoch(
         update_grad = (batch_idx + 1) % args.grad_accumulation_steps == 0  # ivmcl
         if update_grad:
             optimizer.zero_grad()
-        if loss_scaler is not None:  # 是否使用梯度缩放器loss_scaler
+        if loss_scaler is not None:
             loss_scaler(
                 loss,
                 optimizer,
@@ -1778,10 +1770,10 @@ def train_one_epoch(
                     )
                 optimizer.step()
 
-        if model_ema is not None:  # 指数移动平均EMA，在训练过程中获得模型的平均参数，更新模型参数，提高鲁棒性
+        if model_ema is not None:
             model_ema.update(model)
 
-        torch.cuda.synchronize()  # 同步 CUDA 设备
+        torch.cuda.synchronize()
 
         num_updates += 1
         batch_time_m.update(time.time() - end)
