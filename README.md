@@ -17,6 +17,7 @@ Download data to YOUR_PATH.
 2、Training
 
 Usage: me Config_file Model_name Dataset_name Img_size Remove_old_if_exist_0_or_1 Resume_or_not_if_exist Exp_name Tag Gpus Nb_gpus Workers Port
+
 3、Validate
 Usage: me model_name checkpoint_file dataset_name img_size gpus num_gpus
 
