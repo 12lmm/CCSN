@@ -337,7 +337,7 @@ parser.add_argument(
     help="Enable batch size decay & retry for single model validation",
 )
 
-# 一个简化的单模型验证函数
+
 def validate(args):
     # might as well try to validate something
     args.pretrained = args.pretrained or not args.checkpoint
@@ -570,7 +570,7 @@ def validate(args):
 
     return results
 
-# 模型验证的主要函数：处理模型加载、数据输入、推理和指标计算
+
 def _try_run(args, initial_batch_size):
     batch_size = initial_batch_size
     results = OrderedDict()
@@ -605,14 +605,14 @@ def main():
     args = parser.parse_args()
     model_cfgs = []
     model_names = []
-    if os.path.isdir(args.checkpoint):  #　checkpoint是文件夹类型
+    if os.path.isdir(args.checkpoint):
         # validate all checkpoints in a path with same model
         checkpoints = glob.glob(args.checkpoint + "/*.pth.tar")
         checkpoints += glob.glob(args.checkpoint + "/*.pth")
         model_names = list_models(args.model)
         model_cfgs = [(args.model, c) for c in sorted(checkpoints, key=natural_key)]
     else:
-        if args.model == "all":#　checkpoint　不是文件夹，即要验证所有预训练模型
+        if args.model == "all":
             # validate all models in a list of names with pretrained checkpoints
             args.pretrained = True
             model_names = list_models(
@@ -633,7 +633,7 @@ def main():
                 model_names = [line.rstrip() for line in f]
             model_cfgs = [(n, None) for n in model_names if n]
 
-    # 批量验证模型：遍历 model_cfgs，逐一运行模型验证函数 _try_run。
+
     if len(model_cfgs):
         _logger.info(
             "Running bulk validation on these pretrained models: {}".format(
@@ -659,23 +659,22 @@ def main():
         if args.retry:
             results = _try_run(args, args.batch_size)
         else:
-            # 单模型验证：如果没有批量配置，直接运行单个模型的验证函数 validate()
+
             results = validate(args)
 
-    # 结果保存与输出
+
     if args.results_file:
         write_results(args.results_file, results, format=args.results_format)
 
     visualize(args)
 
-    # output results in JSON to stdout w/ delimiter for runner script
+
     print(f"--result\n{json.dumps(results, indent=4)}")
 
 def visualize(args):
     import matplotlib.pyplot as plt
     from torchvision.utils import make_grid
 
-    # 加载数据集
     dataloaders = data_loader.fetch_dataloader(['test'], args.data_dir, args.params)
     class_names = []
     with open(os.path.join(args.data_dir, 'classes.txt')) as f:
@@ -683,23 +682,22 @@ def visualize(args):
             class_names.append(' '.join(line.strip().split()[1:]))
     print("class_names: ", class_names)
 
-    # 加载模型
+
     model = create_model(args.model, pretrained=False, num_classes=len(class_names))
     model.eval()
     if args.checkpoint:
         load_checkpoint(args.checkpoint, model)
     model.to('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # 获取一批测试数据
+
     inputs, classes = next(iter(dataloaders['test']))
     inputs = inputs.to('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # 生成预测
+
     with torch.no_grad():
         outputs = model(inputs)
         _, preds = torch.max(outputs, 1)
 
-    # 可视化结果
     plt.figure(figsize=(12, 6))
     out = make_grid(inputs.cpu())
     imshow(out, title=[f"GT: {class_names[y]} | Pred: {class_names[preds[i]]}" for i, y in enumerate(classes)])
