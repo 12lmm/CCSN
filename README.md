@@ -17,6 +17,8 @@ c. [CAFD](https://github.com/IS2AI/Central-Asian-Food-Dataset)
 
 d. [food new](https://www.kaggle.com/datasets/pranavkathar/foodnew)
 
+or other data.
+
 Download data to YOUR_PATH.
 
 2、Training
