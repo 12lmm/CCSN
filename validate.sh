@@ -19,21 +19,21 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # datasets 
 NUM_CLASSES=0
 if [ "$DATASET" = "food11" ]; then
-  DATA_DIR=/home/liumengmeng/HW3/VGG/data/food11/evaluation/
+  DATA_DIR=*/data/food11/evaluation/
   if [ ! -d $DATA_DIR ]; then
     echo "not found $DATA_DIR"
     exit
   fi
   NUM_CLASSES=11
 elif [ "$DATASET" = "ETHZ_Food101" ]; then
-  DATA_DIR=/home/liumengmeng/HW3/VGG/data/ETHZ_Food101/test/
+  DATA_DIR=*/data/ETHZ_Food101/test/
   if [ ! -d $DATA_DIR ]; then
     echo "not found $DATA_DIR"
     exit
   fi
   NUM_CLASSES=101
 elif [ "$DATASET" = "food_new" ]; then
-  DATA_DIR=/home/liumengmeng/HW3/VGG/data/food_new/val/
+  DATA_DIR=*/data/food_new/val/
   if [ ! -d $DATA_DIR ]; then
     echo "not found $DATA_DIR"
     exit
@@ -50,10 +50,3 @@ CUDA_VISIBLE_DEVICES=$GPUS $PYTHON \
   --img-size $IMAGE_SIZE --workers 8 --num-gpu $NUM_GPUS \
   --model $MODEL --checkpoint $CHECKPOINT_FILE --pin-mem --channels-last --amp \
   ${@:7}
-
-
-
-
-
-
-
